@@ -9,6 +9,8 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+
+	"github.com/netbirdio/netbird/client/hbwatch"
 )
 
 const (
@@ -205,13 +207,11 @@ func jittered(d time.Duration) time.Duration {
 	return d + time.Duration((rand.Float64()*2-1)*redialJitter*float64(d))
 }
 
-// redialAfter hands dialer i back to the race after d.
+// redialAfter hands dialer i back to the race after d. The wait runs on the
+// wall clock where the build has a heartbeat watcher, so after the device slept
+// the dial goes at the wake.
 func (r *RaceDial) redialAfter(ctx context.Context, i int, d time.Duration, due chan<- int) {
-	timer := time.NewTimer(d)
-	defer timer.Stop()
-	select {
-	case <-timer.C:
-	case <-ctx.Done():
+	if err := hbwatch.WaitRetryDelay(ctx, hbwatch.WaitRelayRedial, d, nil); err != nil {
 		return
 	}
 	select {
