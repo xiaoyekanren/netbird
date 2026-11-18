@@ -100,27 +100,6 @@ func TestLoadConfigPreservesLegacyYAMLSemantics(t *testing.T) {
 			},
 		},
 		{
-			name: "empty map remains non nil",
-			contents: `server:
-  perAccountSupportedSyncMessageVersions: {}
-`,
-			validate: func(t *testing.T, cfg *CombinedConfig) {
-				assert.NotNil(t, cfg.Server.PerAccountSupportedSyncMessageVersions,
-					"An explicitly configured empty map should remain non-nil")
-			},
-		},
-		{
-			name: "map key case is retained",
-			contents: `server:
-  perAccountSupportedSyncMessageVersions:
-    AccountA: 1
-`,
-			validate: func(t *testing.T, cfg *CombinedConfig) {
-				assert.Equal(t, map[string]int{"AccountA": 1}, cfg.Server.PerAccountSupportedSyncMessageVersions,
-					"YAML map keys should retain their case")
-			},
-		},
-		{
 			name: "legacy boolean spelling remains accepted",
 			contents: `server:
   disableAnonymousMetrics: yes
@@ -465,9 +444,6 @@ func TestLoadConfigPreservesLegacyUnparsableEnvironmentIgnored(t *testing.T) {
 		{name: "negative uint", envName: "NB_SERVER_REVERSEPROXY_TRUSTEDHTTPPROXIESCOUNT", envValue: "-1", validate: func(t *testing.T, cfg *CombinedConfig) {
 			assert.Equal(t, uint(0), cfg.Server.ReverseProxy.TrustedHTTPProxiesCount, "Legacy loader ignored the environment; default proxy count must be kept")
 		}},
-		{name: "sync version word", envName: "NB_SERVER_SUPPORTEDSYNCMESSAGEVERSIONS", envValue: "x", validate: func(t *testing.T, cfg *CombinedConfig) {
-			assert.Nil(t, cfg.Server.SupportedSyncMessageVersions, "Legacy loader ignored the environment; sync version pointer must remain nil")
-		}},
 		{name: "boolean word", envName: "NB_SERVER_DISABLEANONYMOUSMETRICS", envValue: "maybe", validate: func(t *testing.T, cfg *CombinedConfig) {
 			assert.False(t, cfg.Server.DisableAnonymousMetrics, "Legacy loader ignored the environment; default boolean must be kept")
 		}},
@@ -643,21 +619,6 @@ func TestLoadConfigPreservesLegacyEmptyListEnvironmentIgnored(t *testing.T) {
 			cfg, err := LoadConfig(configPath)
 			require.NoError(t, err)
 			test.validate(t, cfg)
-		})
-	}
-}
-
-func TestLoadConfigPreservesLegacyMapEnvironmentIgnored(t *testing.T) {
-	clearCombinedConfigEnvironment(t)
-	for _, value := range []string{"", "acc=1", `{"acc":1}`} {
-		t.Run("value_"+value, func(t *testing.T) {
-			t.Setenv("NB_SERVER_PERACCOUNTSUPPORTEDSYNCMESSAGEVERSIONS", value)
-			configPath := writeCombinedConfig(t, "config.yaml", legacyCombinedServerFile)
-			cfg, err := LoadConfig(configPath)
-			if !assert.NoError(t, err, "Legacy loader never failed because of an environment variable") {
-				return
-			}
-			assert.Nil(t, cfg.Server.PerAccountSupportedSyncMessageVersions, "Legacy map came only from YAML")
 		})
 	}
 }
@@ -985,8 +946,6 @@ func TestLoadConfigPreservesLegacyStrictYAMLTyping(t *testing.T) {
 		{name: "quoted int", contents: "server:\n  metricsPort: \"9191\"\n"},
 		{name: "str tagged int", contents: "server:\n  metricsPort: !!str 9191\n"},
 		{name: "quoted uint", contents: "server:\n  reverseProxy:\n    trustedHTTPProxiesCount: \"3\"\n"},
-		{name: "quoted int pointer", contents: "server:\n  supportedSyncMessageVersions: \"2\"\n"},
-		{name: "quoted map value", contents: "server:\n  perAccountSupportedSyncMessageVersions: {abc: \"2\"}\n"},
 		{name: "int as bool", contents: "server:\n  disableAnonymousMetrics: 1\n"},
 		{name: "float as bool", contents: "server:\n  disableAnonymousMetrics: 1.0\n"},
 		{name: "quoted true as bool", contents: "server:\n  disableAnonymousMetrics: \"true\"\n"},

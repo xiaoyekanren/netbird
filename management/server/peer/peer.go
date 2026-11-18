@@ -240,14 +240,6 @@ func (p *Peer) SupportsSourcePrefixes() bool {
 	return p.HasCapability(PeerCapabilitySourcePrefixes)
 }
 
-// SupportsComponentNetworkMap reports whether the peer assembles its
-// NetworkMap from server-shipped components instead of consuming a fully
-// expanded NetworkMap. Determines whether the network_map controller skips
-// Calculate() server-side and emits the components envelope.
-func (p *Peer) SupportsComponentNetworkMap() bool {
-	return p.HasCapability(PeerCapabilityComponentNetworkMap)
-}
-
 func capabilitiesEqual(a, b []int32) bool {
 	if len(a) != len(b) {
 		return false

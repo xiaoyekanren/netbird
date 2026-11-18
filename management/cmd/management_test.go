@@ -10,7 +10,6 @@ import (
 
 	nbconfig "github.com/netbirdio/netbird/management/internals/server/config"
 	"github.com/netbirdio/netbird/management/server/idp"
-	"github.com/netbirdio/netbird/shared/management/grpc"
 )
 
 const (
@@ -27,11 +26,6 @@ const (
 		"AuthAudience": "https://stageapp/",
 		"AuthIssuer": "https://something.eu.auth0.com/",
 		"OIDCConfigEndpoint": "https://something.eu.auth0.com/.well-known/openid-configuration"
-	  },
-	  "HighestSupportedSyncMessageVersion": 1,
-	  "PerAccountHighestSupportedSyncMessageVersion": {
-	    "1": 0,
-		"2": 1
 	  }
 	}`
 )
@@ -44,24 +38,6 @@ func Test_LoadMgmtConfig(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, cfg.Relay)
 	assert.NotEmpty(t, cfg.Relay.Addresses)
-	assert.Equal(t, int(grpc.ComponentNetworkMap), *cfg.HighestSupportedSyncMessageVersion)
-	assert.Equal(t, map[string]int{"1": int(grpc.Base), "2": int(grpc.ComponentNetworkMap)}, cfg.PerAccountHighestSupportedSyncMessageVersion)
-}
-
-func Test_LoadMgmtConfig_Empty(t *testing.T) {
-	tmpFile, err := createConfig(`{
-		"HttpConfig": {
-			"AuthAudience": "https://stageapp/",
-			"AuthIssuer": "https://something.eu.auth0.com/",
-			"OIDCConfigEndpoint": "https://something.eu.auth0.com/.well-known/openid-configuration"
-		}
-	}`)
-	assert.NoError(t, err)
-
-	cfg, err := LoadMgmtConfig(context.Background(), tmpFile)
-	assert.NoError(t, err)
-	assert.Nil(t, cfg.HighestSupportedSyncMessageVersion)
-	assert.Nil(t, cfg.PerAccountHighestSupportedSyncMessageVersion)
 }
 
 func TestApplyEmbeddedIdPConfigRequiresSingleAccountDomain(t *testing.T) {

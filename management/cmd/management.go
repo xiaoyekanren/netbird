@@ -27,7 +27,6 @@ import (
 	"github.com/netbirdio/netbird/management/internals/server"
 	nbconfig "github.com/netbirdio/netbird/management/internals/server/config"
 	nbdomain "github.com/netbirdio/netbird/shared/management/domain"
-	"github.com/netbirdio/netbird/shared/management/grpc"
 	"github.com/netbirdio/netbird/util"
 	"github.com/netbirdio/netbird/util/crypt"
 )
@@ -180,20 +179,8 @@ func LoadMgmtConfig(ctx context.Context, mgmtConfigPath string) (*nbconfig.Confi
 
 	ApplyCommandLineOverrides(loadedConfig)
 
-	err := grpc.ValidateSyncMessageVersion(loadedConfig.HighestSupportedSyncMessageVersion)
-	if err != nil {
-		return nil, err
-	}
-
-	for account, version := range loadedConfig.PerAccountHighestSupportedSyncMessageVersion {
-		err := grpc.ValidateSyncMessageVersion(&version)
-		if err != nil {
-			return nil, fmt.Errorf("unrecognized sync message version for account %s, %w", account, err)
-		}
-	}
-
 	// Apply EmbeddedIdP config to HttpConfig if embedded IdP is enabled
-	err = ApplyEmbeddedIdPConfig(ctx, loadedConfig)
+	err := ApplyEmbeddedIdPConfig(ctx, loadedConfig)
 	if err != nil {
 		return nil, err
 	}

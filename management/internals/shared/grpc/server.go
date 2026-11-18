@@ -1000,18 +1000,7 @@ func (s *Server) sendInitialSync(ctx context.Context, peerKey wgtypes.Key, peer 
 
 	var plainResp *proto.SyncResponse
 
-	commonSyncMessageVersion := grpc.HighestCommonSyncMessageVersion(
-		s.perAccountOrGlobalSyncMessageVersions(peer.AccountID),
-		grpc.SyncMessageVersionFromConfig(&peer.Meta.SyncMessageVersion))
-
-	log.WithContext(ctx).
-		WithFields(log.Fields{
-			"sync_message_version":        commonSyncMessageVersion,
-			"server_sync_message_version": s.perAccountOrGlobalSyncMessageVersions(peer.AccountID),
-			"peer_sync_message_version":   grpc.SyncMessageVersionFromConfig(&peer.Meta.SyncMessageVersion),
-		}).Debug("common highest sync message version")
-
-	if commonSyncMessageVersion == grpc.ComponentNetworkMap {
+	if grpc.SupportsComponentNetworkMap(peer.Meta.SyncMessageVersion) {
 		// Capable peer: discard the legacy NetworkMap that SyncAndMarkPeer
 		// computed and recompute the raw components instead. This wastes one
 		// Calculate() call per initial-sync — the component-based wire
@@ -1058,13 +1047,6 @@ func (s *Server) sendInitialSync(ctx context.Context, peerKey wgtypes.Key, peer 
 	}
 
 	return nil
-}
-
-func (s *Server) perAccountOrGlobalSyncMessageVersions(accountId string) grpc.SyncMessageVersion {
-	if version, ok := s.config.PerAccountHighestSupportedSyncMessageVersion[accountId]; ok {
-		return grpc.SyncMessageVersionFromConfig(&version)
-	}
-	return grpc.SyncMessageVersionFromConfig(s.config.HighestSupportedSyncMessageVersion)
 }
 
 // GetDeviceAuthorizationFlow returns a device authorization flow information

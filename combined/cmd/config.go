@@ -81,9 +81,6 @@ type ServerConfig struct {
 	AuthStore               StoreConfig        `yaml:"authStore"`
 	ReverseProxy            ReverseProxyConfig `yaml:"reverseProxy"`
 
-	SupportedSyncMessageVersions           *int           `yaml:"supportedSyncMessageVersions,omitempty"`
-	PerAccountSupportedSyncMessageVersions map[string]int `yaml:"perAccountSupportedSyncMessageVersions,omitempty"`
-
 	AgentNetwork AgentNetworkConfig `yaml:"agentNetwork"`
 }
 
@@ -732,18 +729,16 @@ func (c *CombinedConfig) ToManagementConfig() (*nbconfig.Config, error) {
 	httpConfig.AuthCallbackURL = callbackURL + types.ProxyCallbackEndpointFull
 
 	return &nbconfig.Config{
-		Stuns:                              stuns,
-		Relay:                              relayConfig,
-		Signal:                             signalConfig,
-		Datadir:                            mgmt.DataDir,
-		DataStoreEncryptionKey:             mgmt.Store.EncryptionKey,
-		HttpConfig:                         httpConfig,
-		StoreConfig:                        storeConfig,
-		ReverseProxy:                       reverseProxy,
-		DisableDefaultPolicy:               mgmt.DisableDefaultPolicy,
-		EmbeddedIdP:                        embeddedIdP,
-		HighestSupportedSyncMessageVersion: c.Server.SupportedSyncMessageVersions,
-		PerAccountHighestSupportedSyncMessageVersion: c.Server.PerAccountSupportedSyncMessageVersions,
+		Stuns:                  stuns,
+		Relay:                  relayConfig,
+		Signal:                 signalConfig,
+		Datadir:                mgmt.DataDir,
+		DataStoreEncryptionKey: mgmt.Store.EncryptionKey,
+		HttpConfig:             httpConfig,
+		StoreConfig:            storeConfig,
+		ReverseProxy:           reverseProxy,
+		DisableDefaultPolicy:   mgmt.DisableDefaultPolicy,
+		EmbeddedIdP:            embeddedIdP,
 		AgentNetwork: nbconfig.AgentNetwork{
 			PricingDefaultsFile: c.Server.AgentNetwork.PricingDefaultsFile,
 		},
